@@ -22,4 +22,3 @@ A simple utility for comparing two Instagram data exports and sorting accounts i
 ## Notes
 
 This tool works entirely on the local machine. It does not send your data anywhere.
-# instagramcheck
