@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Instagram — Confronto Follower/Following</title>
+  <style>
+    :root {
+      --bg: #f4f1eb;
+      --surface: #ffffff;
+      --surface2: #f7f5f2;
+      --border: #d8d2c8;
+      --accent: #2f4350;
+      --accent2: #586d7b;
+      --accent3: #7d6858;
+      --green: #2d7d4a;
+      --yellow: #a8711d;
+      --red: #a54848;
+      --text: #1f2427;
+      --muted: #5f666d;
+      --radius: 12px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 2rem 1.5rem;
+    }
+    .logo {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.7rem;
+      margin-bottom: 0.4rem;
+    }
+    .logo svg { width: 36px; height: 36px; }
+    h1 {
+      font-size: 1.8rem;
+      color: var(--text);
+      font-weight: 700;
+    }
+    .subtitle {
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.85rem;
+      margin-bottom: 2.5rem;
+    }
+    .upload-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      max-width: 860px;
+      margin: 0 auto 2rem;
+    }
+    .upload-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.8rem 1.5rem;
+      text-align: center;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      box-shadow: 0 1px 0 rgba(17, 24, 39, 0.02);
+    }
+    .upload-box.loaded { border-color: var(--green); border-style: solid; }
+    .upload-box h3 { margin-bottom: 0.4rem; font-size: 0.95rem; }
+    .upload-box p { font-size: 0.78rem; color: var(--muted); margin-bottom: 1rem; }
+    .file-btn {
+      display: inline-block;
+      background: var(--accent);
+      color: #ffffff;
+      padding: 0.55rem 1.4rem;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      transition: opacity 0.2s, background 0.2s;
+    }
+    .file-btn:hover { background: var(--accent2); }
+    input[type=file] { display: none; }
+    .status { font-size: 0.78rem; margin-top: 0.7rem; color: var(--muted); min-height: 1.1rem; }
+    .status.ok { color: var(--green); }
+    .status.err { color: var(--red); }
+    .compare-btn-wrap { text-align: center; margin-bottom: 2.5rem; }
+    #compareBtn {
+      background: var(--accent);
+      color: white;
+      border: none;
+      padding: 0.9rem 3rem;
+      border-radius: 10px;
+      font-size: 1.05rem;
+      cursor: pointer;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      transition: opacity 0.2s, transform 0.1s, background 0.2s;
+    }
+    #compareBtn:hover { background: var(--accent2); transform: translateY(-1px); }
+    #compareBtn:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+      max-width: 860px;
+      margin: 0 auto 2rem;
+    }
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.2rem 1rem;
+      text-align: center;
+      border-top: 3px solid transparent;
+    }
+    .stat-card.mutual { border-color: var(--green); }
+    .stat-card.not-following { border-color: var(--yellow); }
+    .stat-card.not-followed { border-color: var(--red); }
+    .stat-card .count { font-size: 2.6rem; font-weight: 800; }
+    .stat-card.mutual .count { color: var(--green); }
+    .stat-card.not-following .count { color: var(--yellow); }
+    .stat-card.not-followed .count { color: var(--red); }
+    .stat-card .label { font-size: 0.75rem; color: var(--muted); margin-top: 0.3rem; line-height: 1.4; }
+    .results {
+      max-width: 860px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 1.4rem;
+    }
+    .result-section { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+    .section-header {
+      padding: 0.9rem 1.4rem;
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+      cursor: pointer;
+      user-select: none;
+    }
+    .section-header .stripe {
+      width: 4px; height: 22px;
+      border-radius: 3px;
+      flex-shrink: 0;
+    }
+    .mutual .stripe { background: var(--green); }
+    .not-following .stripe { background: var(--yellow); }
+    .not-followed .stripe { background: var(--red); }
+    .section-header h2 { font-size: 0.92rem; flex: 1; }
+    .section-header .badge {
+      background: var(--surface2);
+      padding: 0.18rem 0.65rem;
+      border-radius: 20px;
+      font-size: 0.72rem;
+      color: var(--muted);
+      font-weight: 600;
+    }
+    .chevron { color: var(--muted); font-size: 0.7rem; transition: transform 0.2s; }
+    .collapsed .chevron { transform: rotate(-90deg); }
+    .section-body { padding: 1rem 1.4rem 1.2rem; border-top: 1px solid var(--border); }
+    .section-body.hidden { display: none; }
+    .search-box {
+      width: 100%;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      padding: 0.5rem 1rem;
+      font-size: 0.82rem;
+      margin-bottom: 0.9rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .search-box:focus { border-color: var(--accent); }
+    .person-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+      gap: 0.5rem;
+      max-height: 340px;
+      overflow-y: auto;
+      scrollbar-width: thin;
+      scrollbar-color: var(--border) transparent;
+    }
+    .person-card {
+      background: var(--surface2);
+      border-radius: 8px;
+      padding: 0.55rem 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 0.55rem;
+      text-decoration: none;
+      color: var(--text);
+      transition: background 0.15s;
+      border: 1px solid transparent;
+      min-width: 0;
+    }
+    .person-card:hover { border-color: var(--border); background: #f0eee9; }
+    .ig-avatar {
+      width: 30px; height: 30px;
+      border-radius: 50%;
+      background: #5f7d8f;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.72rem; font-weight: 700; color: white;
+      flex-shrink: 0;
+    }
+    .person-name {
+      font-size: 0.78rem;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      flex: 1;
+    }
+    .ig-icon { font-size: 0.7rem; color: var(--muted); flex-shrink: 0; }
+    .empty { color: var(--muted); font-size: 0.82rem; padding: 0.8rem 0; text-align: center; }
+    #errorMsg {
+      background: #f7efef;
+      border: 1px solid var(--red);
+      color: var(--red);
+      border-radius: 8px;
+      padding: 0.7rem 1.2rem;
+      max-width: 860px;
+      margin: 0 auto 1.2rem;
+      display: none;
+      font-size: 0.82rem;
+    }
+    @media (max-width: 580px) {
+      .upload-grid, .stats { grid-template-columns: 1fr; }
+      body { padding: 1rem; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="logo">
+  <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="ig" x1="0%" y1="100%" x2="100%" y2="0%">
+        <stop offset="0%" style="stop-color:#f9ce34"/>
+        <stop offset="40%" style="stop-color:#ee2a7b"/>
+        <stop offset="100%" style="stop-color:#6228d7"/>
+      </linearGradient>
+    </defs>
+    <rect width="100" height="100" rx="22" fill="url(#ig)"/>
+    <rect x="20" y="20" width="60" height="60" rx="14" fill="none" stroke="white" stroke-width="7"/>
+    <circle cx="50" cy="50" r="14" fill="none" stroke="white" stroke-width="7"/>
+    <circle cx="72" cy="28" r="5" fill="white"/>
+  </svg>
+  <h1>IG Follower Analyzer</h1>
+</div>
+<p class="subtitle">100% offline · file dal download dati Instagram · nessun dato inviato</p>
+
+<div class="upload-grid">
+  <div class="upload-box" id="box-followers">
+    <h3>📥 followers_1.json</h3>
+    <p>File <b>chi ti segue</b> — dal download dati Instagram<br/><em>(Impostazioni → Il tuo account → Scarica dati)</em></p>
+    <label class="file-btn" for="fileFollowers">Scegli file</label>
+    <input type="file" id="fileFollowers" accept=".json,application/json"/>
+    <div class="status" id="statusFollowers">Nessun file caricato</div>
+  </div>
+  <div class="upload-box" id="box-following">
+    <h3>📤 following.json</h3>
+    <p>File <b>chi segui</b> — dal download dati Instagram<br/><em>(stessa cartella del file followers)</em></p>
+    <label class="file-btn" for="fileFollowing">Scegli file</label>
+    <input type="file" id="fileFollowing" accept=".json,application/json"/>
+    <div class="status" id="statusFollowing">Nessun file caricato</div>
+  </div>
+</div>
+
+<div class="compare-btn-wrap">
+  <button id="compareBtn" disabled>🔍 Analizza</button>
+</div>
+
+<div id="errorMsg"></div>
+
+<div class="stats" id="statsSection" style="display:none;">
+  <div class="stat-card mutual">
+    <div class="count" id="countMutual">0</div>
+    <div class="label">✅ Vi seguite<br/>a vicenda</div>
+  </div>
+  <div class="stat-card not-following">
+    <div class="count" id="countNotFollowing">0</div>
+    <div class="label">👀 Ti seguono<br/>ma tu non li segui</div>
+  </div>
+  <div class="stat-card not-followed">
+    <div class="count" id="countNotFollowed">0</div>
+    <div class="label">💔 Tu li segui<br/>ma non ti seguono</div>
+  </div>
+</div>
+
+<div class="results" id="resultsSection" style="display:none;">
+
+  <div class="result-section mutual" id="sec-mutual">
+    <div class="section-header" onclick="toggleSection('mutual')">
+      <div class="stripe"></div>
+      <h2>✅ Vi seguite a vicenda</h2>
+      <span class="badge" id="badge-mutual">0</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="section-body" id="body-mutual">
+      <input class="search-box" type="text" placeholder="🔍 Cerca username..." oninput="filterList('mutual', this.value)"/>
+      <div class="person-list" id="list-mutual"></div>
+    </div>
+  </div>
+
+  <div class="result-section not-following" id="sec-not-following">
+    <div class="section-header" onclick="toggleSection('not-following')">
+      <div class="stripe"></div>
+      <h2>👀 Ti seguono — ma tu non li segui</h2>
+      <span class="badge" id="badge-not-following">0</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="section-body" id="body-not-following">
+      <input class="search-box" type="text" placeholder="🔍 Cerca username..." oninput="filterList('not-following', this.value)"/>
+      <div class="person-list" id="list-not-following"></div>
+    </div>
+  </div>
+
+  <div class="result-section not-followed" id="sec-not-followed">
+    <div class="section-header" onclick="toggleSection('not-followed')">
+      <div class="stripe"></div>
+      <h2>💔 Tu li segui — ma non ti seguono</h2>
+      <span class="badge" id="badge-not-followed">0</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="section-body" id="body-not-followed">
+      <input class="search-box" type="text" placeholder="🔍 Cerca username..." oninput="filterList('not-followed', this.value)"/>
+      <div class="person-list" id="list-not-followed"></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  let dataFollowers = null, dataFollowing = null;
+  let allData = { mutual: [], 'not-following': [], 'not-followed': [] };
+
+  // Parse followers_1.json: array di {title, string_list_data: [{href, value, timestamp}]}
+  function parseFollowers(text) {
+    const raw = JSON.parse(text);
+    if (!Array.isArray(raw)) throw new Error('followers_1.json: deve essere un array');
+    return raw.map(item => {
+      const s = item.string_list_data && item.string_list_data[0];
+      if (!s || !s.href) throw new Error('Struttura followers non valida');
+      return { username: s.value || extractUsername(s.href), href: s.href };
+    });
+  }
+
+  // Parse following.json: {relationships_following: [{title, string_list_data: [{href, timestamp}]}]}
+  function parseFollowing(text) {
+    const raw = JSON.parse(text);
+    const arr = Array.isArray(raw) ? raw : (raw.relationships_following || null);
+    if (!arr) throw new Error('following.json: struttura non riconosciuta');
+    return arr.map(item => {
+      const s = item.string_list_data && item.string_list_data[0];
+      if (!s || !s.href) throw new Error('Struttura following non valida');
+      const username = item.title || extractUsername(s.href);
+      return { username, href: 'https://www.instagram.com/' + username };
+    });
+  }
+
+  function extractUsername(href) {
+    return href.replace(/.*instagram\.com\/_u\//, '').replace(/.*instagram\.com\//, '').replace(/\/$/, '');
+  }
+
+  function normalizeUser(p) {
+    return p.username.toLowerCase().trim();
+  }
+
+  function loadFile(file, which) {
+    const reader = new FileReader();
+    reader.onload = e => {
+      try {
+        if (which === 'followers') {
+          dataFollowers = parseFollowers(e.target.result);
+          setStatus('Followers', dataFollowers.length + ' account caricati ✓', 'ok');
+          document.getElementById('box-followers').classList.add('loaded');
+        } else {
+          dataFollowing = parseFollowing(e.target.result);
+          setStatus('Following', dataFollowing.length + ' account caricati ✓', 'ok');
+          document.getElementById('box-following').classList.add('loaded');
+        }
+        checkReady();
+      } catch(err) {
+        setStatus(which === 'followers' ? 'Followers' : 'Following', '⚠ ' + err.message, 'err');
+        if (which === 'followers') dataFollowers = null; else dataFollowing = null;
+        checkReady();
+      }
+    };
+    reader.readAsText(file);
+  }
+
+  function setStatus(which, msg, cls) {
+    const el = document.getElementById('status' + which);
+    el.textContent = msg;
+    el.className = 'status ' + (cls || '');
+  }
+
+  function checkReady() {
+    document.getElementById('compareBtn').disabled = !(dataFollowers && dataFollowing);
+  }
+
+  document.getElementById('fileFollowers').onchange = e => { if(e.target.files[0]) loadFile(e.target.files[0], 'followers'); };
+  document.getElementById('fileFollowing').onchange = e => { if(e.target.files[0]) loadFile(e.target.files[0], 'following'); };
+
+  document.getElementById('compareBtn').onclick = () => {
+    document.getElementById('errorMsg').style.display = 'none';
+    try {
+      // followers: chi TI segue
+      // following: chi TU segui
+      const followerMap = new Map(dataFollowers.map(p => [normalizeUser(p), p]));
+      const followingMap = new Map(dataFollowing.map(p => [normalizeUser(p), p]));
+
+      const mutual = [], notFollowing = [], notFollowed = [];
+
+      // mutual & not-followed: loop su chi segui
+      for (const [key, p] of followingMap) {
+        if (followerMap.has(key)) mutual.push(p);
+        else notFollowed.push(p);
+      }
+      // chi ti segue ma tu non segui
+      for (const [key, p] of followerMap) {
+        if (!followingMap.has(key)) notFollowing.push(p);
+      }
+
+      allData = { mutual, 'not-following': notFollowing, 'not-followed': notFollowed };
+
+      document.getElementById('countMutual').textContent = mutual.length;
+      document.getElementById('countNotFollowing').textContent = notFollowing.length;
+      document.getElementById('countNotFollowed').textContent = notFollowed.length;
+
+      renderList('mutual', mutual);
+      renderList('not-following', notFollowing);
+      renderList('not-followed', notFollowed);
+
+      document.getElementById('statsSection').style.display = 'grid';
+      document.getElementById('resultsSection').style.display = 'flex';
+      document.getElementById('resultsSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } catch(err) {
+      const em = document.getElementById('errorMsg');
+      em.textContent = '⚠️ ' + err.message;
+      em.style.display = 'block';
+    }
+  };
+
+  function initials(name) {
+    return (name || '?').slice(0, 2).toUpperCase();
+  }
+
+  function esc(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function renderList(key, data) {
+    const container = document.getElementById('list-' + key);
+    document.getElementById('badge-' + key).textContent = data.length;
+    if (!data.length) {
+      container.innerHTML = '<div class="empty">Nessun risultato in questa categoria</div>';
+      return;
+    }
+    container.innerHTML = data.map(p => `
+      <a class="person-card" href="${esc(p.href)}" target="_blank" rel="noopener noreferrer" title="@${esc(p.username)}">
+        <div class="ig-avatar">${esc(initials(p.username))}</div>
+        <span class="person-name">@${esc(p.username)}</span>
+        <span class="ig-icon">↗</span>
+      </a>
+    `).join('');
+  }
+
+  function filterList(key, query) {
+    const q = query.toLowerCase();
+    renderList(key, allData[key].filter(p => p.username.toLowerCase().includes(q)));
+  }
+
+  function toggleSection(key) {
+    document.getElementById('sec-' + key).classList.toggle('collapsed');
+    document.getElementById('body-' + key).classList.toggle('hidden');
+  }
+</script>
+</body>
+</html>
