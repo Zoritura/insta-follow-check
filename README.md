@@ -1,6 +1,6 @@
 # Instagram Checker
 
-A simple utility for comparing two Instagram data exports and sorting accounts into a few easy categories.
+A privacy-first, offline web tool for comparing two Instagram data exports and sorting accounts into easy categories.
 
 ## What it does
 
@@ -19,6 +19,10 @@ A simple utility for comparing two Instagram data exports and sorting accounts i
 3. Open the HTML file in a browser.
 4. Upload the two files and compare them.
 
-## Notes
+## Privacy
 
-This tool works entirely on the local machine. It does not send your data anywhere.
+This tool works entirely in your browser. Your data never leaves your machine.
+
+## License
+
+MIT — see [LICENSE](LICENSE).
